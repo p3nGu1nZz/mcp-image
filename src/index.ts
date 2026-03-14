@@ -104,6 +104,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const buf = readFileSync(filePath);
     const dim = pngDimensions(buf);
 
+    if (!dim) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Error: File is not a valid PNG or is truncated/corrupted.",
+          },
+        ],
+        isError: true,
+      };
+    }
+
     const metadata = [
       `path: ${filePath}`,
       `size: ${(stats.size / 1024).toFixed(2)} KB`,
