@@ -15,6 +15,18 @@ function pngDimensions(buf: Buffer): { width: number; height: number } | null {
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
 
+const DEFAULT_MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MB
+
+function getMaxImageBytes(): number {
+  const raw = process.env.MCP_IMAGE_MAX_BYTES;
+  if (!raw) return DEFAULT_MAX_IMAGE_BYTES;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return DEFAULT_MAX_IMAGE_BYTES;
+  }
+  return parsed;
+}
+
 const server = new Server(
   { name: "mcp-image", version: "1.0.0" },
   { capabilities: { tools: {} } },
@@ -73,8 +85,23 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       };
     }
 
-    const buf = readFileSync(filePath);
     const stats = statSync(filePath);
+    const maxBytes = getMaxImageBytes();
+    if (stats.size > maxBytes) {
+      const sizeMb = (stats.size / (1024 * 1024)).toFixed(2);
+      const maxMb = (maxBytes / (1024 * 1024)).toFixed(2);
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: file is too large (${sizeMb} MB). Maximum allowed size is ${maxMb} MB. You can configure this limit via the MCP_IMAGE_MAX_BYTES environment variable.`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    const buf = readFileSync(filePath);
     const dim = pngDimensions(buf);
 
     const metadata = [
