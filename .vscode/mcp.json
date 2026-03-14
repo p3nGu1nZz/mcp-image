@@ -2,8 +2,8 @@
   "servers": {
     "mcp-image": {
       "type": "stdio",
-      "command": "node",
-      "args": ["${workspaceFolder}/dist/index.js"]
+      "command": "sh",
+      "args": ["${workspaceFolder}/mcp-image.sh"]
     }
   }
 }

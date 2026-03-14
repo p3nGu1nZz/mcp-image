@@ -1,44 +1,49 @@
 # mcp-image
 
-MCP server that lets AI agents read PNG screenshots, get image metadata (dimensions, size), and receive the raw image data — so the agent can visually analyze what is happening in your game or application.
+MCP stdio server that lets AI agents read PNG screenshots, inspect metadata (path, size, dimensions), and receive the raw image for visual analysis — useful for debugging game playtests.
 
-Communicates over **stdio**, zero runtime dependencies beyond the MCP SDK.
+**Single file. Python stdlib only. No packages to install.**
+
+## Requirements
+
+- Python 3.8+
+- A vision-capable LLM client (e.g. GitHub Copilot Agent, Claude)
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `read_image` | Read a PNG file → returns metadata + base64 image for vision analysis |
-| `list_images` | List all PNG files in a directory |
-
-## Setup
-
-```bash
-npm install
-npm run build
-```
+| Tool | Input | Description |
+|------|-------|-------------|
+| `read_image` | `path` (string) | Read a PNG → returns metadata + base64 image |
+| `list_images` | `directory` (string) | Recursively list all PNG files under a directory |
 
 ## VSCode (local install)
 
-Add `.vscode/mcp.json` to your workspace (already included):
+`.vscode/mcp.json` is already included:
 
 ```json
 {
   "servers": {
     "mcp-image": {
       "type": "stdio",
-      "command": "node",
-      "args": ["${workspaceFolder}/dist/index.js"]
+      "command": "sh",
+      "args": ["${workspaceFolder}/mcp-image.sh"]
     }
   }
 }
 ```
 
-Open the Command Palette → **MCP: List Servers** to confirm the server is running.
+Open the Command Palette → **MCP: List Servers** to confirm the server is running.  
+No build step required — just open the workspace.
 
-## Usage example (agent prompt)
+## CLI test
 
+```bash
+printf '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"0.1"}}}\n{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"read_image","arguments":{"path":"/path/to/screenshot.png"}}}\n' \
+  | sh mcp-image.sh
 ```
-Use the read_image tool with path "/path/to/screenshot.png" to analyze what is
-happening visually in the game screenshot.
-```
+
+## Notes
+
+- Files larger than 20 MB are rejected.
+- Only valid PNG files (correct signature + IHDR) are accepted.
+- `list_images` walks subdirectories recursively.
