@@ -3,7 +3,7 @@
     "mcp-image": {
       "type": "stdio",
       "command": "sh",
-      "args": ["${workspaceFolder}/mcp-image.sh"]
+      "args": ["${workspaceFolder}/tools/mcp-image.sh"]
     }
   }
 }
