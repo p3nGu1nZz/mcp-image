@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "mcp-image": {
+      "type": "stdio",
+      "command": "sh",
+      "args": ["${workspaceFolder}/mcp-image.sh"]
+    }
+  }
+}
