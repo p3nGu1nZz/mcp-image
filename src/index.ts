@@ -149,9 +149,44 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       };
     }
 
-    const files = readdirSync(dir, { withFileTypes: true })
-      .filter((e) => e.isFile() && extname(e.name).toLowerCase() === ".png")
-      .map((e) => resolve(dir, e.name));
+    let dirStats;
+    try {
+      dirStats = statSync(dir);
+    } catch (err) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: unable to access directory: ${dir}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    if (!dirStats.isDirectory()) {
+      return {
+        content: [{ type: "text", text: `Error: not a directory: ${dir}` }],
+        isError: true,
+      };
+    }
+
+    let files: string[];
+    try {
+      files = readdirSync(dir, { withFileTypes: true })
+        .filter((e) => e.isFile() && extname(e.name).toLowerCase() === ".png")
+        .map((e) => resolve(dir, e.name));
+    } catch (err) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Error: failed to read directory: ${dir}`,
+          },
+        ],
+        isError: true,
+      };
+    }
 
     return {
       content: [
